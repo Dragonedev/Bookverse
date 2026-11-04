@@ -1,29 +1,71 @@
 package service;
 
 import entities.Product;
+import exceptions.DuplicateResourceException;
+import exceptions.InvalidDataException;
+import exceptions.ResourceNotFoundException;
 import repository.ProductRepository;
 
 public class ProductService {
 
-	private ProductRepository productRepository;
+    private ProductRepository productRepository;
 
-	public ProductService(ProductRepository productRepository) {
-		this.productRepository = productRepository;
-	}
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
-	public void save(Product product) {
-		productRepository.save(product);
-	}
+    public void save(Product product) {
 
-	public Product findByCode(String productCode) {
-		return productRepository.findByCode(productCode);
-	}
+        if (product == null) {
+            throw new InvalidDataException("Product cannot be null.");
+        }
 
-	public void delete(String productCode) {
-		productRepository.delete(productCode);
-	}
+        if (product.getProductCode() == null ||
+                product.getProductCode().isBlank()) {
+            throw new InvalidDataException("Product code is required.");
+        }
 
-	public boolean existsByCode(String productCode) {
-		return productRepository.existsByCode(productCode);
-	}
+        if (product.getName() == null || product.getName().isBlank()) {
+            throw new InvalidDataException("Product name is required.");
+        }
+
+        if (product.getPrice() == null || product.getPrice() <= 0) {
+            throw new InvalidDataException("Product price must be greater than zero.");
+        }
+
+        if (product.getQuantity() == null || product.getQuantity() < 0) {
+            throw new InvalidDataException("Product quantity cannot be negative.");
+        }
+
+        if (productRepository.existsByCode(product.getProductCode())) {
+            throw new DuplicateResourceException("Product already exists.");
+        }
+
+        productRepository.save(product);
+    }
+
+    public Product findByCode(String productCode) {
+
+        if (productCode == null || productCode.isBlank()) {
+            throw new InvalidDataException("Product code is required.");
+        }
+
+        return productRepository.findByCode(productCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found."));
+    }
+
+    public void delete(String productCode) {
+
+        findByCode(productCode);
+        productRepository.delete(productCode);
+    }
+
+    public boolean existsByCode(String productCode) {
+
+        if (productCode == null || productCode.isBlank()) {
+            throw new InvalidDataException("Product code is required.");
+        }
+
+        return productRepository.existsByCode(productCode);
+    }
 }
