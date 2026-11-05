@@ -8,30 +8,30 @@ import entities.Product;
 
 public class ProductRepository {
 
-    private Map<String, Product> products = new HashMap<>();
+	private final Map<String, Product> products = new HashMap<>();
 
-    public void save(Product product) {
+	public void save(Product product) {
 
-        products.put(product.getProductCode(), product);
+		products.put(product.getProductCode(), product);
 
-    }
+	}
 
-    public Optional<Product> findByCode(String productCode) {
+	public Optional<Product> findByCode(String productCode) {
 
-        return Optional.ofNullable(products.get(productCode));
+		return Optional.ofNullable(products.get(productCode));
 
-    }
+	}
 
-    public void delete(String productCode) {
+	public void delete(String productCode) {
 
-        products.remove(productCode);
+		products.remove(productCode);
 
-    }
+	}
 
-    public boolean existsByCode(String productCode) {
+	public boolean existsByCode(String productCode) {
 
-        return products.containsKey(productCode);
+		return products.containsKey(productCode);
 
-    }
+	}
 
 }

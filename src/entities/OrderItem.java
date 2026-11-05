@@ -3,13 +3,36 @@ package entities;
 public class OrderItem {
 
 	private Product product;
+
 	private Integer quantity;
+
 	private Double unitPrice;
 
-	public OrderItem(Product product, Integer quantity) {
-		this.product = product;
-		this.quantity = quantity;
-		this.unitPrice = product.getPrice();
+	private OrderItem(Builder builder) {
+		this.product = builder.product;
+		this.quantity = builder.quantity;
+		this.unitPrice = builder.product.getPrice();
+	}
+
+	public static class Builder {
+
+		private Product product;
+
+		private Integer quantity;
+
+		public Builder product(Product product) {
+			this.product = product;
+			return this;
+		}
+
+		public Builder quantity(Integer quantity) {
+			this.quantity = quantity;
+			return this;
+		}
+
+		public OrderItem build() {
+			return new OrderItem(this);
+		}
 	}
 
 	public Double calculateSubtotal() {
@@ -39,6 +62,5 @@ public class OrderItem {
 	public void setUnitPrice(Double unitPrice) {
 		this.unitPrice = unitPrice;
 	}
-	
-	
+
 }
