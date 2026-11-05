@@ -8,7 +8,7 @@ import entities.Customer;
 
 public class CustomerRepository {
 
-    private Map<String, Customer> customers = new HashMap<>();
+    private final Map<String, Customer> customers = new HashMap<>();
 
     public void save(Customer customer) {
 

@@ -8,7 +8,7 @@ import entities.Order;
 
 public class OrderRepository {
 
-	private Map<String, Order> orders = new HashMap<>();
+	private final Map<String, Order> orders = new HashMap<>();
 
 	public void save(Order order) {
 
