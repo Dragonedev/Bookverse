@@ -31,7 +31,7 @@ public class CheckoutFacade {
 
 		Payment payment = paymentFactory.createPayment(paymentCode, order, amount, currency);
 
-		boolean approved = paymentService.processPayment(payment, paymentGateway);
+		boolean approved = paymentService.processPayment(payment);
 
 		if (!approved) {
 			throw new IllegalStateException("Payment was not approved.");
