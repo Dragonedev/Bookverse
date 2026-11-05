@@ -1,86 +1,59 @@
 package service;
 
 import entities.Order;
-import entities.OrderItem;
-
-import exceptions.DuplicateResourceException;
-import exceptions.EmptyOrderException;
-import exceptions.InsufficientStockException;
-import exceptions.InvalidDataException;
-import exceptions.ResourceNotFoundException;
-
 import repository.OrderRepository;
 
 public class OrderService {
 
-    private OrderRepository orderRepository;
+	private final OrderRepository repository;
 
-    public OrderService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
+	public OrderService(OrderRepository repository) {
+		this.repository = repository;
+	}
 
-    public void save(Order order) {
+	public void validateForCheckout(Order order) {
 
-        if (order == null) {
-            throw new InvalidDataException("Order cannot be null.");
-        }
+		if (order == null) {
+			throw new IllegalArgumentException("Order cannot be null.");
+		}
 
-        if (order.getOrderCode() == null || order.getOrderCode().isBlank()) {
-            throw new InvalidDataException("Order code is required.");
-        }
+		if (order.getOrderCode() == null || order.getOrderCode().isBlank()) {
+			throw new IllegalArgumentException("Order code cannot be empty.");
+		}
 
-        if (orderRepository.existsByCode(order.getOrderCode())) {
-            throw new DuplicateResourceException("Order already exists.");
-        }
+		if (order.getItems().isEmpty()) {
+			throw new IllegalArgumentException("Order cannot be empty.");
+		}
 
-        if (order.getItems() == null || order.getItems().isEmpty()) {
-            throw new EmptyOrderException("Order must contain at least one item.");
-        }
+		if (order.calculateTotal() <= 0) {
+			throw new IllegalArgumentException("Order total must be greater than zero.");
+		}
 
-        for (OrderItem item : order.getItems()) {
+		if (repository.existsByCode(order.getOrderCode())) {
+			throw new IllegalStateException("Order already exists.");
+		}
+	}
 
-            if (item == null) {
-                throw new InvalidDataException("Order item cannot be null.");
-            }
+	public void save(Order order) {
+		validateForCheckout(order);
+		repository.save(order);
+	}
 
-            if (item.getProduct() == null) {
-                throw new InvalidDataException("Order item product cannot be null.");
-            }
+	public Order findByCode(String orderCode) {
 
-            if (item.getQuantity() == null || item.getQuantity() <= 0) {
-                throw new InvalidDataException("Item quantity must be greater than zero.");
-            }
+		return repository.findByCode(orderCode).orElseThrow(() -> new IllegalArgumentException("Order not found."));
+	}
 
-            if (item.getQuantity() > item.getProduct().getQuantity()) {
-                throw new InsufficientStockException("Insufficient product stock.");
-            }
-        }
+	public void delete(String orderCode) {
 
-        orderRepository.save(order);
-    }
+		if (!repository.existsByCode(orderCode)) {
+			throw new IllegalArgumentException("Order not found.");
+		}
 
-    public Order findByCode(String orderCode) {
+		repository.delete(orderCode);
+	}
 
-        if (orderCode == null || orderCode.isBlank()) {
-            throw new InvalidDataException("Order code is required.");
-        }
-
-        return orderRepository.findByCode(orderCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
-    }
-
-    public void delete(String orderCode) {
-
-        findByCode(orderCode);
-        orderRepository.delete(orderCode);
-    }
-
-    public boolean existsByCode(String orderCode) {
-
-        if (orderCode == null || orderCode.isBlank()) {
-            throw new InvalidDataException("Order code is required.");
-        }
-
-        return orderRepository.existsByCode(orderCode);
-    }
+	public boolean existsByCode(String orderCode) {
+		return repository.existsByCode(orderCode);
+	}
 }
