@@ -4,15 +4,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import entities.enums.OrderStatus;
+
 public class Order {
 
 	private String orderCode;
 
 	private List<OrderItem> items = new ArrayList<>();
 
+	private OrderStatus status;
+
 	private Order(Builder builder) {
+
 		this.orderCode = builder.orderCode;
+
 		this.items = new ArrayList<>(builder.items);
+
+		this.status = OrderStatus.CREATED;
 	}
 
 	public static class Builder {
@@ -42,7 +50,29 @@ public class Order {
 	}
 
 	public void addItem(OrderItem item) {
+		if (status != OrderStatus.CREATED) {
+			throw new IllegalStateException("Cannot modify a completed or cancelled order.");
+		}
+
 		items.add(item);
+	}
+
+	public void complete() {
+
+		if (status != OrderStatus.CREATED) {
+			throw new IllegalStateException("Only created orders can be completed.");
+		}
+
+		status = OrderStatus.COMPLETED;
+	}
+
+	public void cancel() {
+
+		if (status == OrderStatus.CANCELLED) {
+			throw new IllegalStateException("Order is already cancelled.");
+		}
+
+		status = OrderStatus.CANCELLED;
 	}
 
 	public List<OrderItem> getItems() {
@@ -64,4 +94,7 @@ public class Order {
 		return orderCode;
 	}
 
+	public OrderStatus getStatus() {
+		return status;
+	}
 }

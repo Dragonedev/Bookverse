@@ -20,4 +20,8 @@ public class IndividualProduct implements ProductComponent {
 		return product.getPrice();
 	}
 
+	public Product getProduct() {
+		return product;
+	}
+
 }

@@ -4,6 +4,7 @@ import java.util.Map;
 
 import payment.product.Payment;
 import payment.strategy.PaymentStrategy;
+import payment.strategy.RefundStrategy;
 import repository.PaymentRepository;
 
 public class PaymentService {
@@ -12,23 +13,28 @@ public class PaymentService {
 
 	private final Map<String, PaymentStrategy> strategies;
 
-	public PaymentService(PaymentRepository repository, Map<String, PaymentStrategy> strategies) {
+	private final Map<String, RefundStrategy> refundStrategies;
+
+	public PaymentService(PaymentRepository repository, Map<String, PaymentStrategy> strategies,
+			Map<String, RefundStrategy> refundStrategies) {
 
 		this.repository = repository;
 		this.strategies = Map.copyOf(strategies);
+		this.refundStrategies = Map.copyOf(refundStrategies);
 	}
 
-	public boolean processPayment(Payment payment) {
+	public void validateNewPayment(Payment payment) {
 
 		validatePayment(payment);
-
-		if (!"PENDING".equals(payment.getStatus())) {
-			throw new IllegalStateException("Only pending payments can be processed.");
-		}
 
 		if (repository.existsByCode(payment.getPaymentCode())) {
 			throw new IllegalStateException("Payment already exists.");
 		}
+	}
+
+	public boolean processPayment(Payment payment) {
+
+		validateNewPayment(payment);
 
 		PaymentStrategy strategy = strategies.get(payment.getPaymentMethod());
 
@@ -36,14 +42,53 @@ public class PaymentService {
 			throw new IllegalArgumentException("Payment strategy not found.");
 		}
 
+		repository.save(payment);
+
 		boolean approved = strategy.process(payment);
 
 		if (approved) {
 			payment.markAsCompleted();
-			repository.save(payment);
 		}
 
+		repository.save(payment);
+
 		return approved;
+	}
+
+	public boolean cancelOrRefund(Payment payment) {
+
+		if (payment == null) {
+			throw new IllegalArgumentException("Payment cannot be null.");
+		}
+
+		if ("PENDING".equals(payment.getStatus())) {
+
+			payment.cancelPayment();
+
+			repository.save(payment);
+
+			return true;
+		}
+
+		if ("COMPLETED".equals(payment.getStatus())) {
+
+			RefundStrategy strategy = refundStrategies.get(payment.getPaymentMethod());
+
+			if (strategy == null) {
+				throw new IllegalArgumentException("Refund strategy not found.");
+			}
+
+			boolean refunded = strategy.refund(payment);
+
+			if (refunded) {
+				payment.refundPayment();
+				repository.save(payment);
+			}
+
+			return refunded;
+		}
+
+		throw new IllegalStateException("Payment cannot be cancelled or refunded.");
 	}
 
 	private void validatePayment(Payment payment) {
@@ -72,5 +117,4 @@ public class PaymentService {
 			throw new IllegalArgumentException("Payment method cannot be empty.");
 		}
 	}
-
 }

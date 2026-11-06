@@ -39,6 +39,19 @@ public class OrderService {
 		repository.save(order);
 	}
 
+	public void update(Order order) {
+
+		if (order == null) {
+			throw new IllegalArgumentException("Order cannot be null.");
+		}
+
+		if (!repository.existsByCode(order.getOrderCode())) {
+			throw new IllegalArgumentException("Order not found.");
+		}
+
+		repository.save(order);
+	}
+
 	public Order findByCode(String orderCode) {
 
 		return repository.findByCode(orderCode).orElseThrow(() -> new IllegalArgumentException("Order not found."));

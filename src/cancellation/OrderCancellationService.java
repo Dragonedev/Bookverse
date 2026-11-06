@@ -1,18 +1,30 @@
 package cancellation;
 
+import entities.Order;
+import entities.enums.OrderStatus;
 import payment.product.Payment;
 import repository.OrderRepository;
 import repository.PaymentRepository;
+import service.InventoryService;
+import service.OrderService;
+import service.PaymentService;
 
 public class OrderCancellationService {
 
-	private final PaymentRepository paymentRepository;
+	private final OrderService orderService;
+
+	private final PaymentService paymentService;
+
+	private final InventoryService inventoryService;
 
 	private final OrderCancellationHandler handlerChain;
 
-	public OrderCancellationService(OrderRepository orderRepository, PaymentRepository paymentRepository) {
+	public OrderCancellationService(OrderRepository orderRepository, PaymentRepository paymentRepository,
+			OrderService orderService, PaymentService paymentService, InventoryService inventoryService) {
 
-		this.paymentRepository = paymentRepository;
+		this.orderService = orderService;
+		this.paymentService = paymentService;
+		this.inventoryService = inventoryService;
 
 		OrderCancellationHandler orderExists = new OrderExistsHandler(orderRepository);
 
@@ -20,9 +32,11 @@ public class OrderCancellationService {
 
 		OrderCancellationHandler paymentOwnership = new PaymentOwnershipHandler();
 
+		OrderCancellationHandler orderStatus = new OrderStatusHandler();
+
 		OrderCancellationHandler paymentStatus = new PaymentStatusHandler();
 
-		orderExists.setNext(paymentExists).setNext(paymentOwnership).setNext(paymentStatus);
+		orderExists.setNext(paymentExists).setNext(paymentOwnership).setNext(orderStatus).setNext(paymentStatus);
 
 		this.handlerChain = orderExists;
 	}
@@ -33,15 +47,25 @@ public class OrderCancellationService {
 
 		handlerChain.handle(context);
 
+		Order order = context.getOrder();
+
 		Payment payment = context.getPayment();
 
-		if ("PENDING".equals(payment.getStatus())) {
-			payment.cancelPayment();
-		} else {
-			payment.refundPayment();
+		boolean completedOrder = order.getStatus() == OrderStatus.COMPLETED;
+
+		boolean operationCompleted = paymentService.cancelOrRefund(payment);
+
+		if (!operationCompleted) {
+			throw new IllegalStateException("Payment cancellation or refund failed.");
 		}
 
-		paymentRepository.save(payment);
+		if (completedOrder) {
+			inventoryService.restoreStock(order.getItems());
+		}
+
+		order.cancel();
+
+		orderService.update(order);
 
 		return payment;
 	}

@@ -9,4 +9,10 @@ public class DollarPaymentProvider {
 		return true;
 	}
 
+	public boolean refundDollarPayment(long amountInCents, String transactionId) {
+
+		System.out.println("Processing dollar refund...");
+
+		return true;
+	}
 }
