@@ -20,4 +20,4 @@ public class InternationalRefundStrategy implements RefundStrategy {
 
 		return gateway.refundPayment(payment);
 	}
-}
+}	
