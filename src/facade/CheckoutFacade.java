@@ -1,7 +1,6 @@
 package facade;
 
 import entities.Order;
-import payment.adapter.PaymentGateway;
 import payment.factory.PaymentFactory;
 import payment.product.Payment;
 import service.OrderService;
@@ -18,18 +17,11 @@ public class CheckoutFacade {
 		this.paymentService = paymentService;
 	}
 
-	public Payment checkout(Order order, PaymentFactory paymentFactory, PaymentGateway paymentGateway,
-			String paymentCode, String currency) {
-
-		if (paymentFactory == null) {
-			throw new IllegalArgumentException("Payment factory cannot be null.");
-		}
+	public Payment checkout(Order order, PaymentFactory paymentFactory, String paymentCode, String currency) {
 
 		orderService.validateForCheckout(order);
 
-		Double amount = order.calculateTotal();
-
-		Payment payment = paymentFactory.createPayment(paymentCode, order, amount, currency);
+		Payment payment = paymentFactory.createPayment(paymentCode, order, order.calculateTotal(), currency);
 
 		boolean approved = paymentService.processPayment(payment);
 

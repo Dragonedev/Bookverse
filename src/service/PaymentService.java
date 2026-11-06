@@ -1,18 +1,21 @@
 package service;
 
-import payment.adapter.PaymentGateway;
+import java.util.Map;
+
 import payment.product.Payment;
+import payment.strategy.PaymentStrategy;
 import repository.PaymentRepository;
 
 public class PaymentService {
 
 	private final PaymentRepository repository;
-	private final PaymentGateway gateway;
 
-	public PaymentService(PaymentRepository repository, PaymentGateway gateway) {
+	private final Map<String, PaymentStrategy> strategies;
+
+	public PaymentService(PaymentRepository repository, Map<String, PaymentStrategy> strategies) {
 
 		this.repository = repository;
-		this.gateway = gateway;
+		this.strategies = Map.copyOf(strategies);
 	}
 
 	public boolean processPayment(Payment payment) {
@@ -23,7 +26,13 @@ public class PaymentService {
 			throw new IllegalStateException("Payment already exists.");
 		}
 
-		boolean approved = gateway.processPayment(payment);
+		PaymentStrategy strategy = strategies.get(payment.getPaymentMethod());
+
+		if (strategy == null) {
+			throw new IllegalArgumentException("Payment strategy not found.");
+		}
+
+		boolean approved = strategy.process(payment);
 
 		if (approved) {
 			repository.save(payment);
@@ -52,6 +61,10 @@ public class PaymentService {
 
 		if (payment.getCurrency() == null || payment.getCurrency().isBlank()) {
 			throw new IllegalArgumentException("Payment currency cannot be empty.");
+		}
+
+		if (payment.getPaymentMethod() == null || payment.getPaymentMethod().isBlank()) {
+			throw new IllegalArgumentException("Payment method cannot be empty.");
 		}
 	}
 }

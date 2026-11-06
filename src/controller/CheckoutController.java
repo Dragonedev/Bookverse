@@ -2,7 +2,6 @@ package controller;
 
 import entities.Order;
 import facade.CheckoutFacade;
-import payment.adapter.PaymentGateway;
 import payment.factory.PaymentFactory;
 import payment.product.Payment;
 
@@ -14,9 +13,8 @@ public class CheckoutController {
 		this.checkoutFacade = checkoutFacade;
 	}
 
-	public Payment checkout(Order order, PaymentFactory paymentFactory, PaymentGateway paymentGateway,
-			String paymentCode, String currency) {
+	public Payment checkout(Order order, PaymentFactory paymentFactory, String paymentCode, String currency) {
 
-		return checkoutFacade.checkout(order, paymentFactory, paymentGateway, paymentCode, currency);
+		return checkoutFacade.checkout(order, paymentFactory, paymentCode, currency);
 	}
 }
