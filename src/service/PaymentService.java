@@ -22,6 +22,10 @@ public class PaymentService {
 
 		validatePayment(payment);
 
+		if (!"PENDING".equals(payment.getStatus())) {
+			throw new IllegalStateException("Only pending payments can be processed.");
+		}
+
 		if (repository.existsByCode(payment.getPaymentCode())) {
 			throw new IllegalStateException("Payment already exists.");
 		}
@@ -35,6 +39,7 @@ public class PaymentService {
 		boolean approved = strategy.process(payment);
 
 		if (approved) {
+			payment.markAsCompleted();
 			repository.save(payment);
 		}
 
@@ -67,4 +72,5 @@ public class PaymentService {
 			throw new IllegalArgumentException("Payment method cannot be empty.");
 		}
 	}
+
 }
