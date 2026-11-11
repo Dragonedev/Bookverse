@@ -214,66 +214,6 @@ public class BookverseMain {
 		System.out.println("Estoque Java restaurado: " + javaBook.getQuantity());
 		System.out.println("Estoque Python restaurado: " + pythonBook.getQuantity());
 
-		// ==========================================
-		// EXEMPLO 5: A CORRENTE BARRANDO CANCELAMENTOS INVÁLIDOS
-		// ==========================================
-
-		System.out.println("\n========== CANCELAMENTOS INVÁLIDOS ==========");
-
-		try {
-			cancellationController.cancelOrder("ORD002", "PAY002");
-		} catch (IllegalStateException e) {
-			System.out.println("Cancelar ORD002 de novo -> " + e.getMessage());
-		}
-
-		try {
-			cancellationController.cancelOrder("ORD001", "PAY003");
-		} catch (IllegalStateException e) {
-			System.out.println("ORD001 com pagamento PAY003 -> " + e.getMessage());
-		}
-
-		try {
-			cancellationController.cancelOrder("ORD999", "PAY001");
-		} catch (IllegalArgumentException e) {
-			System.out.println("Pedido inexistente -> " + e.getMessage());
-		}
-
-		// ==========================================
-		// EXEMPLO 6: VALIDAÇÕES (BUILDER, ESTOQUE E STATE)
-		// ==========================================
-
-		System.out.println("\n========== VALIDAÇÕES ==========");
-
-		try {
-			new Product.Builder().productCode("P004").name("Livro sem preço").price(0.0).quantity(5).build();
-		} catch (InvalidDataException e) {
-			System.out.println("Builder de Product -> " + e.getMessage());
-		}
-
-		try {
-			new Customer.Builder().customerCode("C001").name("Cliente").cpf("123").email("cliente@email.com").build();
-		} catch (InvalidDataException e) {
-			System.out.println("Builder de Customer -> " + e.getMessage());
-		}
-
-		try {
-			new Order.Builder().orderCode("ORD004").build();
-		} catch (EmptyOrderException e) {
-			System.out.println("Builder de Order -> " + e.getMessage());
-		}
-
-		try {
-			Order bigOrder = new Order.Builder().orderCode("ORD005").addItem(cloudComponent, 50).build();
-			checkoutController.checkout(bigOrder, new PixPaymentFactory(), "PAY005");
-		} catch (InsufficientStockException e) {
-			System.out.println("Estoque -> " + e.getMessage());
-		}
-
-		try {
-			refundedPayment.markAsCompleted();
-		} catch (IllegalStateException e) {
-			System.out.println("State (REFUNDED -> COMPLETED) -> " + e.getMessage());
-		}
 
 		// ==========================================
 		// RESUMO
