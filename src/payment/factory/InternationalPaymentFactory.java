@@ -7,8 +7,8 @@ import payment.product.Payment;
 public class InternationalPaymentFactory extends PaymentFactory {
 
 	@Override
-	public Payment createPayment(String paymentCode, Order order, Double amount, String currency) {
+	protected Payment instantiatePayment(String paymentCode, Order order, Double amount) {
 
-		return new InternationalPayment(paymentCode, order, amount, currency);
+		return new InternationalPayment(paymentCode, order, amount);
 	}
 }

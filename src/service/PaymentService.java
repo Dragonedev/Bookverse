@@ -61,34 +61,13 @@ public class PaymentService {
 			throw new IllegalArgumentException("Payment cannot be null.");
 		}
 
-		if ("PENDING".equals(payment.getStatus())) {
+		RefundStrategy refundStrategy = refundStrategies.get(payment.getPaymentMethod());
 
-			payment.cancelPayment();
+		payment.cancelOrRefund(refundStrategy);
 
-			repository.save(payment);
+		repository.save(payment);
 
-			return true;
-		}
-
-		if ("COMPLETED".equals(payment.getStatus())) {
-
-			RefundStrategy strategy = refundStrategies.get(payment.getPaymentMethod());
-
-			if (strategy == null) {
-				throw new IllegalArgumentException("Refund strategy not found.");
-			}
-
-			boolean refunded = strategy.refund(payment);
-
-			if (refunded) {
-				payment.refundPayment();
-				repository.save(payment);
-			}
-
-			return refunded;
-		}
-
-		throw new IllegalStateException("Payment cannot be cancelled or refunded.");
+		return true;
 	}
 
 	private void validatePayment(Payment payment) {

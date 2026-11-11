@@ -13,8 +13,8 @@ public class CheckoutController {
 		this.checkoutFacade = checkoutFacade;
 	}
 
-	public Payment checkout(Order order, PaymentFactory paymentFactory, String paymentCode, String currency) {
+	public Payment checkout(Order order, PaymentFactory paymentFactory, String paymentCode) {
 
-		return checkoutFacade.checkout(order, paymentFactory, paymentCode, currency);
+		return checkoutFacade.checkout(order, paymentFactory, paymentCode);
 	}
 }

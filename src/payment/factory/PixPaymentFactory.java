@@ -1,14 +1,14 @@
 package payment.factory;
 
 import entities.Order;
-import payment.product.Payment;
 import payment.product.PixPayment;
+import payment.product.Payment;
 
 public class PixPaymentFactory extends PaymentFactory {
 
 	@Override
-	public Payment createPayment(String paymentCode, Order order, Double amount, String currency) {
+	protected Payment instantiatePayment(String paymentCode, Order order, Double amount) {
 
-		return new PixPayment(paymentCode, order, amount, currency);
+		return new PixPayment(paymentCode, order, amount);
 	}
 }

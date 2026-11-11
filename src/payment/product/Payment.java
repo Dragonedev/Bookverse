@@ -1,18 +1,21 @@
 package payment.product;
 
 import entities.Order;
+import entities.enums.OrderStatus;
 import payment.state.PaymentState;
+import payment.state.PaymentStatus;
 import payment.state.PendingPaymentState;
+import payment.strategy.RefundStrategy;
 
 public abstract class Payment {
 
-	private String paymentCode;
+	private final String paymentCode;
 
-	private Order order;
+	private final Order order;
 
-	private Double amount;
+	private final Double amount;
 
-	private String currency;
+	private final String currency;
 
 	private PaymentState state;
 
@@ -32,15 +35,19 @@ public abstract class Payment {
 		state = state.complete();
 	}
 
-	public void cancelPayment() {
-		state = state.cancel();
+	public void cancelOrRefund(RefundStrategy refundStrategy) {
+		state = state.cancelOrRefund(this, refundStrategy);
 	}
 
-	public void refundPayment() {
-		state = state.refund();
+	public boolean canBeCancelledOrRefunded() {
+		return state.canBeCancelledOrRefunded();
 	}
 
-	public String getStatus() {
+	public boolean isConsistentWith(OrderStatus orderStatus) {
+		return state.isConsistentWith(orderStatus);
+	}
+
+	public PaymentStatus getStatus() {
 		return state.getStatus();
 	}
 

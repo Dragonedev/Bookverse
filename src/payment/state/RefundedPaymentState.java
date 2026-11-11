@@ -1,5 +1,9 @@
 package payment.state;
 
+import entities.enums.OrderStatus;
+import payment.product.Payment;
+import payment.strategy.RefundStrategy;
+
 public class RefundedPaymentState implements PaymentState {
 
 	@Override
@@ -8,18 +12,23 @@ public class RefundedPaymentState implements PaymentState {
 	}
 
 	@Override
-	public PaymentState cancel() {
-		throw new IllegalStateException("Refunded payment cannot be cancelled.");
-	}
-
-	@Override
-	public PaymentState refund() {
+	public PaymentState cancelOrRefund(Payment payment, RefundStrategy refundStrategy) {
 		throw new IllegalStateException("Payment is already refunded.");
 	}
 
 	@Override
-	public String getStatus() {
-		return "REFUNDED";
+	public boolean canBeCancelledOrRefunded() {
+		return false;
+	}
+
+	@Override
+	public boolean isConsistentWith(OrderStatus orderStatus) {
+		return orderStatus == OrderStatus.CANCELLED;
+	}
+
+	@Override
+	public PaymentStatus getStatus() {
+		return PaymentStatus.REFUNDED;
 	}
 
 }

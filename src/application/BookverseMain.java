@@ -3,6 +3,7 @@ package application;
 
 import java.util.Map;
 
+import entities.Customer;
 import entities.Order;
 import entities.OrderItem;
 import entities.Product;
@@ -16,6 +17,12 @@ import controller.CancellationController;
 
 import facade.CheckoutFacade;
 
+import exceptions.EmptyOrderException;
+import exceptions.InsufficientStockException;
+import exceptions.InvalidDataException;
+
+import cancellation.CancellationChainFactory;
+import cancellation.OrderCancellationHandler;
 import cancellation.OrderCancellationService;
 
 import payment.adapter.DollarPaymentAdapter;
@@ -113,8 +120,11 @@ public class BookverseMain {
 		// 8. CANCELAMENTO
 		// ==========================================
 
-		OrderCancellationService cancellationService = new OrderCancellationService(orderRepository, paymentRepository,
-				orderService, paymentService, inventoryService);
+		OrderCancellationHandler cancellationChain = CancellationChainFactory.createDefaultChain(orderRepository,
+				paymentRepository);
+
+		OrderCancellationService cancellationService = new OrderCancellationService(cancellationChain, orderService,
+				paymentService, inventoryService);
 
 		CancellationController cancellationController = new CancellationController(cancellationService);
 
@@ -130,7 +140,7 @@ public class BookverseMain {
 
 		Order pixOrder = new Order.Builder().orderCode("ORD001").addItem(javaItem).build();
 
-		Payment pixPayment = checkoutController.checkout(pixOrder, new PixPaymentFactory(), "PAY001", "BRL");
+		Payment pixPayment = checkoutController.checkout(pixOrder, new PixPaymentFactory(), "PAY001");
 
 		System.out.println("Pedido: " + pixOrder.getOrderCode());
 		System.out.println("Pagamento: " + pixPayment.getPaymentCode());
@@ -149,13 +159,13 @@ public class BookverseMain {
 		ProductBundle programmingKit = new ProductBundle("Kit Programação");
 
 		programmingKit.add(new IndividualProduct(javaBook));
-		programmingKit.add(new IndividualProduct(pythonBook));
+		programmingKit.add(pythonBook);
 
 		OrderItem kitItem = new OrderItem.Builder().product(programmingKit).quantity(1).build();
 
 		Order cardOrder = new Order.Builder().orderCode("ORD002").addItem(kitItem).build();
 
-		Payment cardPayment = checkoutController.checkout(cardOrder, new CardPaymentFactory(), "PAY002", "BRL");
+		Payment cardPayment = checkoutController.checkout(cardOrder, new CardPaymentFactory(), "PAY002");
 
 		System.out.println("Pedido: " + cardOrder.getOrderCode());
 		System.out.println("Pagamento: " + cardPayment.getPaymentCode());
@@ -174,12 +184,10 @@ public class BookverseMain {
 
 		ProductComponent cloudComponent = new IndividualProduct(cloudBook);
 
-		OrderItem cloudItem = new OrderItem.Builder().product(cloudComponent).quantity(2).build();
-
-		Order internationalOrder = new Order.Builder().orderCode("ORD003").addItem(cloudItem).build();
+		Order internationalOrder = new Order.Builder().orderCode("ORD003").addItem(cloudComponent, 2).build();
 
 		Payment internationalPayment = checkoutController.checkout(internationalOrder,
-				new InternationalPaymentFactory(), "PAY003", "USD");
+				new InternationalPaymentFactory(), "PAY003");
 
 		System.out.println("Pedido: " + internationalOrder.getOrderCode());
 		System.out.println("Pagamento: " + internationalPayment.getPaymentCode());
@@ -205,6 +213,67 @@ public class BookverseMain {
 
 		System.out.println("Estoque Java restaurado: " + javaBook.getQuantity());
 		System.out.println("Estoque Python restaurado: " + pythonBook.getQuantity());
+
+		// ==========================================
+		// EXEMPLO 5: A CORRENTE BARRANDO CANCELAMENTOS INVÁLIDOS
+		// ==========================================
+
+		System.out.println("\n========== CANCELAMENTOS INVÁLIDOS ==========");
+
+		try {
+			cancellationController.cancelOrder("ORD002", "PAY002");
+		} catch (IllegalStateException e) {
+			System.out.println("Cancelar ORD002 de novo -> " + e.getMessage());
+		}
+
+		try {
+			cancellationController.cancelOrder("ORD001", "PAY003");
+		} catch (IllegalStateException e) {
+			System.out.println("ORD001 com pagamento PAY003 -> " + e.getMessage());
+		}
+
+		try {
+			cancellationController.cancelOrder("ORD999", "PAY001");
+		} catch (IllegalArgumentException e) {
+			System.out.println("Pedido inexistente -> " + e.getMessage());
+		}
+
+		// ==========================================
+		// EXEMPLO 6: VALIDAÇÕES (BUILDER, ESTOQUE E STATE)
+		// ==========================================
+
+		System.out.println("\n========== VALIDAÇÕES ==========");
+
+		try {
+			new Product.Builder().productCode("P004").name("Livro sem preço").price(0.0).quantity(5).build();
+		} catch (InvalidDataException e) {
+			System.out.println("Builder de Product -> " + e.getMessage());
+		}
+
+		try {
+			new Customer.Builder().customerCode("C001").name("Cliente").cpf("123").email("cliente@email.com").build();
+		} catch (InvalidDataException e) {
+			System.out.println("Builder de Customer -> " + e.getMessage());
+		}
+
+		try {
+			new Order.Builder().orderCode("ORD004").build();
+		} catch (EmptyOrderException e) {
+			System.out.println("Builder de Order -> " + e.getMessage());
+		}
+
+		try {
+			Order bigOrder = new Order.Builder().orderCode("ORD005").addItem(cloudComponent, 50).build();
+			checkoutController.checkout(bigOrder, new PixPaymentFactory(), "PAY005");
+		} catch (InsufficientStockException e) {
+			System.out.println("Estoque -> " + e.getMessage());
+		}
+
+		try {
+			refundedPayment.markAsCompleted();
+		} catch (IllegalStateException e) {
+			System.out.println("State (REFUNDED -> COMPLETED) -> " + e.getMessage());
+		}
 
 		// ==========================================
 		// RESUMO

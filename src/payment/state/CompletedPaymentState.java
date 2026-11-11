@@ -1,5 +1,9 @@
 package payment.state;
 
+import entities.enums.OrderStatus;
+import payment.product.Payment;
+import payment.strategy.RefundStrategy;
+
 public class CompletedPaymentState implements PaymentState {
 
 	@Override
@@ -8,18 +12,32 @@ public class CompletedPaymentState implements PaymentState {
 	}
 
 	@Override
-	public PaymentState cancel() {
-		throw new IllegalStateException("Completed payment cannot be cancelled. Use refund.");
-	}
+	public PaymentState cancelOrRefund(Payment payment, RefundStrategy refundStrategy) {
 
-	@Override
-	public PaymentState refund() {
+		if (refundStrategy == null) {
+			throw new IllegalArgumentException("Refund strategy not found.");
+		}
+
+		if (!refundStrategy.refund(payment)) {
+			throw new IllegalStateException("Refund failed.");
+		}
+
 		return new RefundedPaymentState();
 	}
 
 	@Override
-	public String getStatus() {
-		return "COMPLETED";
+	public boolean canBeCancelledOrRefunded() {
+		return true;
+	}
+
+	@Override
+	public boolean isConsistentWith(OrderStatus orderStatus) {
+		return orderStatus == OrderStatus.COMPLETED;
+	}
+
+	@Override
+	public PaymentStatus getStatus() {
+		return PaymentStatus.COMPLETED;
 	}
 
 }

@@ -1,12 +1,14 @@
 
 package entities;
 
+import exceptions.InvalidDataException;
+
 public class Customer {
 
-	private String customerCode;
-	private String name;
-	private String cpf;
-	private String email;
+	private final String customerCode;
+	private final String name;
+	private final String cpf;
+	private final String email;
 
 	private Customer(Builder builder) {
 		this.customerCode = builder.customerCode;
@@ -43,6 +45,23 @@ public class Customer {
 		}
 
 		public Customer build() {
+
+			if (customerCode == null || customerCode.isBlank()) {
+				throw new InvalidDataException("Customer code is required.");
+			}
+
+			if (name == null || name.isBlank()) {
+				throw new InvalidDataException("Customer name is required.");
+			}
+
+			if (cpf == null || !cpf.matches("\\d{11}")) {
+				throw new InvalidDataException("CPF must contain 11 digits.");
+			}
+
+			if (email == null || !email.matches("^[\\w.-]+@[\\w.-]+\\.\\w+$")) {
+				throw new InvalidDataException("Invalid email.");
+			}
+
 			return new Customer(this);
 		}
 	}
@@ -51,32 +70,16 @@ public class Customer {
 		return customerCode;
 	}
 
-	public void setCustomerCode(String customerCode) {
-		this.customerCode = customerCode;
-	}
-
 	public String getName() {
 		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getCpf() {
 		return cpf;
 	}
 
-	public void setCpf(String cpf) {
-		this.cpf = cpf;
-	}
-
 	public String getEmail() {
 		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
 	}
 
 }

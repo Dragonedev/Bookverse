@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import composite.ProductComponent;
 import entities.enums.OrderStatus;
+import exceptions.EmptyOrderException;
+import exceptions.InvalidDataException;
 
 public class Order {
 
@@ -35,8 +38,17 @@ public class Order {
 		}
 
 		public Builder addItem(OrderItem item) {
+
+			if (item == null) {
+				throw new InvalidDataException("Order item cannot be null.");
+			}
+
 			this.items.add(item);
 			return this;
+		}
+
+		public Builder addItem(ProductComponent product, int quantity) {
+			return addItem(new OrderItem.Builder().product(product).quantity(quantity).build());
 		}
 
 		public Builder items(List<OrderItem> items) {
@@ -45,6 +57,15 @@ public class Order {
 		}
 
 		public Order build() {
+
+			if (orderCode == null || orderCode.isBlank()) {
+				throw new InvalidDataException("Order code is required.");
+			}
+
+			if (items.isEmpty()) {
+				throw new EmptyOrderException("Order must have at least one item.");
+			}
+
 			return new Order(this);
 		}
 	}

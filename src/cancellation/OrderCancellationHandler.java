@@ -11,7 +11,7 @@ public abstract class OrderCancellationHandler {
 		return nextHandler;
 	}
 
-	public void handle(CancellationContext context) {
+	public final void handle(CancellationContext context) {
 
 		validate(context);
 

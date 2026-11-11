@@ -1,16 +1,21 @@
 package cancellation;
 
+import entities.Order;
+import payment.product.Payment;
+
 public class PaymentOwnershipHandler extends OrderCancellationHandler {
 
 	@Override
 	protected void validate(CancellationContext context) {
 
-		if (context.getPayment().getOrder() == null) {
+		Order order = context.getOrder();
+		Payment payment = context.getPayment();
+
+		if (payment.getOrder() == null) {
 			throw new IllegalStateException("Payment has no associated order.");
 		}
 
-		if (!context.getOrder().getOrderCode().equals(context.getPayment().getOrder().getOrderCode())) {
-
+		if (!order.getOrderCode().equals(payment.getOrder().getOrderCode())) {
 			throw new IllegalStateException("Payment does not belong to this order.");
 		}
 	}

@@ -1,5 +1,9 @@
 package payment.state;
 
+import entities.enums.OrderStatus;
+import payment.product.Payment;
+import payment.strategy.RefundStrategy;
+
 public class PendingPaymentState implements PaymentState {
 
 	@Override
@@ -8,18 +12,23 @@ public class PendingPaymentState implements PaymentState {
 	}
 
 	@Override
-	public PaymentState cancel() {
+	public PaymentState cancelOrRefund(Payment payment, RefundStrategy refundStrategy) {
 		return new CancelledPaymentState();
 	}
 
 	@Override
-	public PaymentState refund() {
-		throw new IllegalStateException("Pending payment cannot be refunded.");
+	public boolean canBeCancelledOrRefunded() {
+		return true;
 	}
 
 	@Override
-	public String getStatus() {
-		return "PENDING";
+	public boolean isConsistentWith(OrderStatus orderStatus) {
+		return orderStatus == OrderStatus.CREATED;
+	}
+
+	@Override
+	public PaymentStatus getStatus() {
+		return PaymentStatus.PENDING;
 	}
 
 }

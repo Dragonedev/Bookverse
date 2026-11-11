@@ -4,8 +4,8 @@ import entities.Order;
 
 public class PixPayment extends Payment {
 
-	public PixPayment(String paymentCode, Order order, Double amount, String currency) {
-		super(paymentCode, order, amount, currency);
+	public PixPayment(String paymentCode, Order order, Double amount) {
+		super(paymentCode, order, amount, "BRL");
 	}
 
 	@Override

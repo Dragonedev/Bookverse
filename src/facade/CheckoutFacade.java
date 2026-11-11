@@ -22,7 +22,7 @@ public class CheckoutFacade {
 		this.inventoryService = inventoryService;
 	}
 
-	public Payment checkout(Order order, PaymentFactory paymentFactory, String paymentCode, String currency) {
+	public Payment checkout(Order order, PaymentFactory paymentFactory, String paymentCode) {
 
 		if (paymentFactory == null) {
 			throw new IllegalArgumentException("Payment factory cannot be null.");
@@ -32,7 +32,7 @@ public class CheckoutFacade {
 
 		inventoryService.validateAvailability(order.getItems());
 
-		Payment payment = paymentFactory.createPayment(paymentCode, order, order.calculateTotal(), currency);
+		Payment payment = paymentFactory.createPayment(paymentCode, order);
 
 		paymentService.validateNewPayment(payment);
 

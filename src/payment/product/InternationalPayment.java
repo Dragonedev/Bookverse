@@ -4,8 +4,8 @@ import entities.Order;
 
 public class InternationalPayment extends Payment {
 
-	public InternationalPayment(String paymentCode, Order order, Double amount, String currency) {
-		super(paymentCode, order, amount, currency);
+	public InternationalPayment(String paymentCode, Order order, Double amount) {
+		super(paymentCode, order, amount, "USD");
 	}
 
 	@Override

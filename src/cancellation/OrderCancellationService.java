@@ -3,8 +3,6 @@ package cancellation;
 import entities.Order;
 import entities.enums.OrderStatus;
 import payment.product.Payment;
-import repository.OrderRepository;
-import repository.PaymentRepository;
 import service.InventoryService;
 import service.OrderService;
 import service.PaymentService;
@@ -17,35 +15,22 @@ public class OrderCancellationService {
 
 	private final InventoryService inventoryService;
 
-	private final OrderCancellationHandler handlerChain;
+	private final OrderCancellationHandler validationChain;
 
-	public OrderCancellationService(OrderRepository orderRepository, PaymentRepository paymentRepository,
-			OrderService orderService, PaymentService paymentService, InventoryService inventoryService) {
+	public OrderCancellationService(OrderCancellationHandler validationChain, OrderService orderService,
+			PaymentService paymentService, InventoryService inventoryService) {
 
+		this.validationChain = validationChain;
 		this.orderService = orderService;
 		this.paymentService = paymentService;
 		this.inventoryService = inventoryService;
-
-		OrderCancellationHandler orderExists = new OrderExistsHandler(orderRepository);
-
-		OrderCancellationHandler paymentExists = new PaymentExistsHandler(paymentRepository);
-
-		OrderCancellationHandler paymentOwnership = new PaymentOwnershipHandler();
-
-		OrderCancellationHandler orderStatus = new OrderStatusHandler();
-
-		OrderCancellationHandler paymentStatus = new PaymentStatusHandler();
-
-		orderExists.setNext(paymentExists).setNext(paymentOwnership).setNext(orderStatus).setNext(paymentStatus);
-
-		this.handlerChain = orderExists;
 	}
 
 	public Payment cancelOrder(String orderCode, String paymentCode) {
 
 		CancellationContext context = new CancellationContext(orderCode, paymentCode);
 
-		handlerChain.handle(context);
+		validationChain.handle(context);
 
 		Order order = context.getOrder();
 

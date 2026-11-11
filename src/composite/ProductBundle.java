@@ -3,6 +3,10 @@ package composite;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import entities.Product;
+import exceptions.InvalidDataException;
 
 public class ProductBundle implements ProductComponent {
 
@@ -11,11 +15,25 @@ public class ProductBundle implements ProductComponent {
 	private final List<ProductComponent> components = new ArrayList<>();
 
 	public ProductBundle(String name) {
+
+		if (name == null || name.isBlank()) {
+			throw new InvalidDataException("Bundle name is required.");
+		}
+
 		this.name = name;
 	}
 
 	public void add(ProductComponent component) {
+
+		if (component == null) {
+			throw new InvalidDataException("Component cannot be null.");
+		}
+
 		components.add(component);
+	}
+
+	public void add(Product product) {
+		add(new IndividualProduct(product));
 	}
 
 	public void remove(ProductComponent component) {
@@ -41,6 +59,14 @@ public class ProductBundle implements ProductComponent {
 		}
 
 		return total;
+	}
+
+	@Override
+	public void collectStock(int quantity, Map<Product, Integer> stockByProduct) {
+
+		for (ProductComponent component : components) {
+			component.collectStock(quantity, stockByProduct);
+		}
 	}
 
 }

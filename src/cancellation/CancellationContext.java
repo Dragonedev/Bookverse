@@ -5,38 +5,38 @@ import payment.product.Payment;
 
 public class CancellationContext {
 
-    private final String orderCode;
-    private final String paymentCode;
+	private final String orderCode;
+	private final String paymentCode;
 
-    private Order order;
-    private Payment payment;
+	private Order order;
+	private Payment payment;
 
-    public CancellationContext(String orderCode, String paymentCode) {
-        this.orderCode = orderCode;
-        this.paymentCode = paymentCode;
-    }
+	public CancellationContext(String orderCode, String paymentCode) {
+		this.orderCode = orderCode;
+		this.paymentCode = paymentCode;
+	}
 
-    public String getOrderCode() {
-        return orderCode;
-    }
+	public String getOrderCode() {
+		return orderCode;
+	}
 
-    public String getPaymentCode() {
-        return paymentCode;
-    }
+	public String getPaymentCode() {
+		return paymentCode;
+	}
 
-    public Order getOrder() {
-        return order;
-    }
+	public Order getOrder() {
+		return order;
+	}
 
-    public void setOrder(Order order) {
-        this.order = order;
-    }
+	public Payment getPayment() {
+		return payment;
+	}
 
-    public Payment getPayment() {
-        return payment;
-    }
+	void setOrder(Order order) {
+		this.order = order;
+	}
 
-    public void setPayment(Payment payment) {
-        this.payment = payment;
-    }
+	void setPayment(Payment payment) {
+		this.payment = payment;
+	}
 }

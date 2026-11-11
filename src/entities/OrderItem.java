@@ -1,14 +1,15 @@
 package entities;
 
 import composite.ProductComponent;
+import exceptions.InvalidDataException;
 
 public class OrderItem {
 
-	private ProductComponent product;
+	private final ProductComponent product;
 
-	private Integer quantity;
+	private final Integer quantity;
 
-	private Double unitPrice;
+	private final Double unitPrice;
 
 	private OrderItem(Builder builder) {
 
@@ -17,7 +18,6 @@ public class OrderItem {
 		this.quantity = builder.quantity;
 
 		this.unitPrice = builder.product.calculatePrice();
-
 	}
 
 	public static class Builder {
@@ -31,7 +31,6 @@ public class OrderItem {
 			this.product = product;
 
 			return this;
-
 		}
 
 		public Builder quantity(Integer quantity) {
@@ -39,59 +38,40 @@ public class OrderItem {
 			this.quantity = quantity;
 
 			return this;
-
 		}
 
 		public OrderItem build() {
 
+			if (product == null) {
+				throw new InvalidDataException("Order item product is required.");
+			}
+
+			if (quantity == null || quantity <= 0) {
+				throw new InvalidDataException("Order item quantity must be greater than zero.");
+			}
+
 			return new OrderItem(this);
-
 		}
-
 	}
 
 	public Double calculateSubtotal() {
 
 		return unitPrice * quantity;
-
 	}
 
 	public ProductComponent getProduct() {
 
 		return product;
-
 	}
 
 	public Integer getQuantity() {
 
 		return quantity;
-
 	}
 
 	public Double getUnitPrice() {
 
 		return unitPrice;
-
-	}
-
-	public void setProduct(ProductComponent product) {
-
-		this.product = product;
-
-		this.unitPrice = product.calculatePrice();
-
-	}
-
-	public void setQuantity(Integer quantity) {
-
-		this.quantity = quantity;
-
-	}
-
-	public void setUnitPrice(Double unitPrice) {
-
-		this.unitPrice = unitPrice;
-
 	}
 
 }
